@@ -1,0 +1,759 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Calculadora Gage R&amp;R</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap">
+<style>
+/* Panel de configuración arriba, bitácora de captura al centro, lector
+   digital de resultados abajo — una columna que se apila en móvil. */
+:root{
+  color-scheme: light;
+  --page:#f9f9f7; --surface:#fcfcfb; --surface-2:#ffffff;
+  --ink:#0b0b0b; --ink-2:#52514e; --muted:#898781;
+  --grid:#e1e0d9; --border:rgba(11,11,11,0.10);
+  --accent:#1baf7a; --accent-ink:#ffffff;
+  --series-ev:#2a78d6; --series-av:#eb6834; --series-pv:#4a3aa7;
+  --good:#0ca30c; --warning:#fab219; --critical:#d03b3b;
+  --good-bg:#e8f6e8; --warning-bg:#fef3dc; --critical-bg:#fbe4e4;
+  --sans:'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  --mono:'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --page:#0d0d0d; --surface:#1a1a19; --surface-2:#232321;
+    --ink:#ffffff; --ink-2:#c3c2b7; --muted:#898781;
+    --grid:#2c2c2a; --border:rgba(255,255,255,0.10);
+    --accent:#199e70; --accent-ink:#ffffff;
+    --series-ev:#3987e5; --series-av:#d95926; --series-pv:#9085e9;
+    --good:#0ca30c; --warning:#fab219; --critical:#e66767;
+    --good-bg:#132a16; --warning-bg:#332a10; --critical-bg:#331414;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --page:#0d0d0d; --surface:#1a1a19; --surface-2:#232321;
+  --ink:#ffffff; --ink-2:#c3c2b7; --muted:#898781;
+  --grid:#2c2c2a; --border:rgba(255,255,255,0.10);
+  --accent:#199e70; --accent-ink:#ffffff;
+  --series-ev:#3987e5; --series-av:#d95926; --series-pv:#9085e9;
+  --good:#0ca30c; --warning:#fab219; --critical:#e66767;
+  --good-bg:#132a16; --warning-bg:#332a10; --critical-bg:#331414;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--page); color:var(--ink); font-family:var(--sans);
+  padding-inline:16px; padding-block:28px; margin:0;
+}
+.wrap{max-width:920px; margin:0 auto; display:flex; flex-direction:column; gap:20px}
+h1,h2,h3{text-wrap:balance; font-weight:700; margin:0}
+h1{font-size:26px; letter-spacing:-0.01em}
+h2{font-size:17px}
+h3{font-size:14px; color:var(--ink-2); text-transform:uppercase; letter-spacing:0.04em}
+p{margin:0; line-height:1.5}
+.eyebrow{font-size:12px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--accent)}
+.lede{color:var(--ink-2); font-size:15px; max-width:62ch}
+.card{
+  background:var(--surface); border:1px solid var(--border); border-radius:14px;
+  padding:20px; display:flex; flex-direction:column; gap:16px;
+}
+.card-head{display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap}
+.row{display:flex; gap:12px; flex-wrap:wrap}
+.field{display:flex; flex-direction:column; gap:6px; min-width:0}
+.field label{font-size:12px; color:var(--ink-2); font-weight:600}
+select, input[type=text]{
+  font-family:var(--sans); font-size:14px; color:var(--ink);
+  background:var(--surface-2); border:1px solid var(--border); border-radius:8px;
+  padding:9px 10px; min-width:0;
+}
+select:focus, input:focus{outline:2px solid var(--accent); outline-offset:1px}
+button{
+  font-family:var(--sans); font-size:13.5px; font-weight:600; cursor:pointer;
+  border-radius:8px; padding:10px 16px; border:1px solid var(--border);
+  background:var(--surface-2); color:var(--ink);
+}
+button:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+button.primary{background:var(--accent); color:var(--accent-ink); border-color:transparent}
+button.ghost{background:transparent}
+button:disabled{opacity:0.5; cursor:not-allowed}
+.btn-row{display:flex; gap:10px; flex-wrap:wrap}
+.badge{
+  display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600;
+  padding:4px 10px; border-radius:999px; background:var(--surface-2); color:var(--ink-2);
+  border:1px solid var(--border); white-space:nowrap;
+}
+.table-scroll{overflow-x:auto; border:1px solid var(--border); border-radius:10px}
+table{border-collapse:collapse; width:100%; min-width:520px}
+thead th{
+  position:sticky; top:0; background:var(--surface-2); font-size:11px; text-transform:uppercase;
+  letter-spacing:0.04em; color:var(--ink-2); font-weight:600; text-align:center; padding:10px 8px;
+  border-bottom:1px solid var(--grid);
+}
+thead th.op-ev{color:var(--series-ev)}
+thead th.op-av{color:var(--series-av)}
+thead th.op-pv{color:var(--series-pv)}
+tbody td{padding:6px 8px; border-bottom:1px solid var(--grid); text-align:center}
+tbody tr:last-child td{border-bottom:none}
+.part-name{
+  text-align:left; font-weight:600; font-family:var(--mono); font-size:13px; white-space:nowrap;
+}
+.part-name input{width:100%; min-width:84px; border:none; background:transparent; padding:4px; font-family:var(--mono); font-weight:600; color:var(--ink)}
+.op-name-input{border:none; background:transparent; text-align:center; font-weight:600; width:100%; color:inherit; font-size:12px; text-transform:uppercase; letter-spacing:0.04em}
+.cell-input{
+  width:76px; font-family:var(--mono); font-size:14px; text-align:center;
+  background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:6px 4px;
+}
+.cell-input.empty{border-color:var(--warning)}
+.tabs{display:flex; gap:4px; border-bottom:1px solid var(--border)}
+.tab{
+  padding:9px 14px; font-size:13.5px; font-weight:600; color:var(--ink-2); cursor:pointer;
+  border-bottom:2px solid transparent; user-select:none;
+}
+.tab.active{color:var(--ink); border-bottom-color:var(--accent)}
+.stat-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(120px,1fr)); gap:10px}
+.stat-tile{
+  background:var(--surface-2); border:1px solid var(--border); border-radius:10px;
+  padding:14px; display:flex; flex-direction:column; gap:6px;
+}
+.stat-tile .label{font-size:11px; color:var(--ink-2); text-transform:uppercase; letter-spacing:0.04em; font-weight:600}
+.stat-tile .value{font-family:var(--mono); font-size:22px; font-weight:600; font-variant-numeric:tabular-nums}
+.stat-tile.status{border-width:2px}
+.status-good{background:var(--good-bg); border-color:var(--good) !important}
+.status-warning{background:var(--warning-bg); border-color:var(--warning) !important}
+.status-critical{background:var(--critical-bg); border-color:var(--critical) !important}
+.status-dot{width:8px; height:8px; border-radius:50%; display:inline-block}
+.chart-wrap{display:flex; flex-direction:column; gap:10px}
+.legend{display:flex; gap:16px; flex-wrap:wrap; font-size:12px; color:var(--ink-2)}
+.legend span{display:inline-flex; align-items:center; gap:6px}
+.swatch{width:10px; height:10px; border-radius:2px; display:inline-block}
+.interp{
+  font-size:14px; line-height:1.55; padding:14px; border-radius:10px; border:1px solid var(--border);
+  background:var(--surface-2);
+}
+.anova-table{width:100%; border-collapse:collapse; font-size:12.5px; font-family:var(--mono)}
+.anova-table th, .anova-table td{padding:7px 8px; text-align:right; border-bottom:1px solid var(--grid)}
+.anova-table th:first-child, .anova-table td:first-child{text-align:left; font-family:var(--sans)}
+details{border:1px solid var(--border); border-radius:10px; padding:4px 14px; background:var(--surface-2)}
+summary{cursor:pointer; font-size:13.5px; font-weight:600; padding:10px 0}
+.formula{font-family:var(--mono); font-size:13px; background:var(--surface); border-radius:6px; padding:8px 10px; display:inline-block; margin:6px 0}
+footer{color:var(--muted); font-size:12px; text-align:center; padding-top:8px}
+.msg{font-size:13px; color:var(--critical); min-height:18px}
+@media (max-width: 480px){
+  .card{padding:16px}
+  h1{font-size:22px}
+}
+</style>
+
+<div class="wrap">
+  <header style="display:flex;flex-direction:column;gap:6px">
+    <p class="eyebrow">Análisis del sistema de medición</p>
+    <h1>Calculadora Gage R&amp;R</h1>
+    <p class="lede">Captura tu estudio de repetibilidad y reproducibilidad, calcula EV, AV, GRR y PV con los dos métodos del AIAG (Promedio y Rango, ANOVA) y exporta los resultados.</p>
+  </header>
+
+  <section class="card" id="config-card">
+    <div class="card-head">
+      <h2>1 · Configuración del estudio</h2>
+      <span class="badge" id="example-badge">Datos de ejemplo cargados</span>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label for="cfg-operators">Operadores</label>
+        <select id="cfg-operators"><option value="2">2</option><option value="3">3</option></select>
+      </div>
+      <div class="field">
+        <label for="cfg-parts">Piezas</label>
+        <select id="cfg-parts">
+          <option value="5">5</option><option value="6">6</option><option value="7">7</option>
+          <option value="8">8</option><option value="9">9</option><option value="10">10</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="cfg-trials">Repeticiones</label>
+        <select id="cfg-trials"><option value="2">2</option><option value="3">3</option></select>
+      </div>
+      <div class="field">
+        <label for="cfg-unit">Unidad</label>
+        <input type="text" id="cfg-unit" value="mm" style="width:70px">
+      </div>
+      <div class="field">
+        <label for="cfg-lsl">LSL (opcional)</label>
+        <input type="text" id="cfg-lsl" inputmode="decimal" placeholder="—" style="width:90px">
+      </div>
+      <div class="field">
+        <label for="cfg-usl">USL (opcional)</label>
+        <input type="text" id="cfg-usl" inputmode="decimal" placeholder="—" style="width:90px">
+      </div>
+    </div>
+  </section>
+
+  <section class="card" id="data-card">
+    <div class="card-head">
+      <h2>2 · Captura de datos</h2>
+      <div class="btn-row">
+        <button class="ghost" id="btn-example" type="button">Cargar ejemplo</button>
+        <button class="ghost" id="btn-clear" type="button">Limpiar</button>
+      </div>
+    </div>
+    <div class="table-scroll"><table id="data-table"></table></div>
+    <div class="msg" id="data-msg"></div>
+    <div class="btn-row">
+      <button class="primary" id="btn-calc" type="button">Calcular resultados</button>
+      <button id="btn-export" type="button">Descargar CSV</button>
+    </div>
+  </section>
+
+  <section class="card" id="results-card" hidden>
+    <div class="card-head">
+      <h2>3 · Resultados</h2>
+      <div class="tabs">
+        <div class="tab active" data-method="xr">Promedio y Rango</div>
+        <div class="tab" data-method="anova">ANOVA</div>
+      </div>
+    </div>
+    <div id="results-body"></div>
+  </section>
+
+  <details>
+    <summary>¿Cómo se calculan EV, AV, GRR y PV?</summary>
+    <p class="lede" style="max-width:none">
+      Método Promedio y Rango: EV = R̿ × K1 (K1 según repeticiones); AV = √[(X̄diff × K2)² − EV²/(n·r)] (K2 según operadores);
+      GRR = √(EV² + AV²); PV = Rp × K3 (K3 según piezas); TV = √(GRR² + PV²).
+    </p>
+    <p class="lede" style="max-width:none">
+      Método ANOVA: descompone la variación en Pieza, Operador, Interacción Operador×Pieza y Error, con una prueba F sobre la
+      interacción (se agrupa con el error cuando p &gt; 0.25). EV, AV, GRR y PV se obtienen de las varianzas resultantes × 5.15 (rango del 99%).
+    </p>
+    <p class="lede" style="max-width:none">
+      Criterio de aceptación de %GRR: menor a 10% excelente, 10%–30% aceptable según la aplicación, mayor a 30% inaceptable.
+      ndc (número de categorías distintas) debería ser 5 o más.
+    </p>
+  </details>
+
+  <footer>Calculadora Gage R&amp;R · fórmulas AIAG MSA-4</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- constants ----------
+  var K_TABLE = {2:3.65,3:2.70,4:2.30,5:2.08,6:1.93,7:1.82,8:1.74,9:1.67,10:1.62};
+  var K1_TABLE = {2:4.56,3:3.05};
+  var DEFAULT_OP_NAMES = ["Ana","Luis","Marco"];
+
+  // ---------- state ----------
+  var config = {operators:2, parts:5, trials:2, unit:"mm", lsl:24.90, usl:25.10};
+  var opNames = {op0:"Ana", op1:"Luis"};
+  var partNames = {p0:"Pieza 1", p1:"Pieza 2", p2:"Pieza 3", p3:"Pieza 4", p4:"Pieza 5"};
+  var data = {
+    op0:{p0:[25.01,25.02], p1:[25.03,25.04], p2:[24.98,24.97], p3:[25.05,25.06], p4:[25.00,25.01]},
+    op1:{p0:[25.00,25.01], p1:[25.02,25.04], p2:[24.99,24.98], p3:[25.04,25.05], p4:[24.99,25.00]}
+  };
+  var usingExample = true;
+  var activeMethod = "xr";
+  var lastResults = null;
+
+  var EXAMPLE = {
+    operators:2, parts:5, trials:2, unit:"mm", lsl:24.90, usl:25.10,
+    opNames:{op0:"Ana", op1:"Luis"},
+    partNames:{p0:"Pieza 1", p1:"Pieza 2", p2:"Pieza 3", p3:"Pieza 4", p4:"Pieza 5"},
+    data:{
+      op0:{p0:[25.01,25.02], p1:[25.03,25.04], p2:[24.98,24.97], p3:[25.05,25.06], p4:[25.00,25.01]},
+      op1:{p0:[25.00,25.01], p1:[25.02,25.04], p2:[24.99,24.98], p3:[25.04,25.05], p4:[24.99,25.00]}
+    }
+  };
+
+  // ---------- helpers ----------
+  function avg(arr){ return arr.reduce(function(a,b){return a+b;},0)/arr.length; }
+  function opIds(){ var a=[]; for(var i=0;i<config.operators;i++) a.push("op"+i); return a; }
+  function partIds(){ var a=[]; for(var i=0;i<config.parts;i++) a.push("p"+i); return a; }
+  function parseNum(v){
+    if (v===null || v===undefined) return null;
+    var s = String(v).trim().replace(",", ".");
+    if (s==="") return null;
+    var n = parseFloat(s);
+    return isFinite(n) ? n : null;
+  }
+  function fmt(n, d){ if (n===null || n===undefined || isNaN(n)) return "—"; return n.toFixed(d===undefined?4:d); }
+
+  // ---------- numerics for ANOVA (regularized incomplete beta / F p-value) ----------
+  function logGamma(x){
+    var g=7, c=[0.99999999999980993,676.5203681218851,-1259.1392167224028,
+      771.32342877765313,-176.61502916214059,12.507343278686905,
+      -0.13857109526572012,9.9843695780195716e-6,1.5056327351493116e-7];
+    if (x<0.5) return Math.log(Math.PI/Math.sin(Math.PI*x)) - logGamma(1-x);
+    x-=1; var a=c[0]; var t=x+g+0.5;
+    for (var i=1;i<g+2;i++) a += c[i]/(x+i);
+    return 0.5*Math.log(2*Math.PI) + (x+0.5)*Math.log(t) - t + Math.log(a);
+  }
+  function betacf(x,a,b){
+    var MAXIT=200, EPS=3e-14, FPMIN=1e-300;
+    var qab=a+b, qap=a+1, qam=a-1;
+    var c=1, d=1-qab*x/qap;
+    if (Math.abs(d)<FPMIN) d=FPMIN;
+    d=1/d; var h=d;
+    for (var m=1;m<=MAXIT;m++){
+      var m2=2*m;
+      var aa=m*(b-m)*x/((qam+m2)*(a+m2));
+      d=1+aa*d; if (Math.abs(d)<FPMIN) d=FPMIN;
+      c=1+aa/c; if (Math.abs(c)<FPMIN) c=FPMIN;
+      d=1/d; h*=d*c;
+      aa=-(a+m)*(qab+m)*x/((a+m2)*(qap+m2));
+      d=1+aa*d; if (Math.abs(d)<FPMIN) d=FPMIN;
+      c=1+aa/c; if (Math.abs(c)<FPMIN) c=FPMIN;
+      d=1/d; var del=d*c; h*=del;
+      if (Math.abs(del-1)<EPS) break;
+    }
+    return h;
+  }
+  function ibeta(x,a,b){
+    if (x<=0) return 0; if (x>=1) return 1;
+    var bt = Math.exp(logGamma(a+b)-logGamma(a)-logGamma(b)+a*Math.log(x)+b*Math.log(1-x));
+    if (x < (a+1)/(a+b+2)) return bt*betacf(x,a,b)/a;
+    return 1 - bt*betacf(1-x,b,a)/b;
+  }
+  function pf(f,d1,d2){ if (f<=0) return 0; var x=d1*f/(d1*f+d2); return ibeta(x,d1/2,d2/2); }
+
+  // ---------- calculations ----------
+  function computeXbarR(){
+    var ops=opIds(), parts=partIds(), r=config.trials;
+    var k=ops.length, n=parts.length;
+    var opRbar={}, opMean={};
+    ops.forEach(function(op){
+      var ranges=[], vals=[];
+      parts.forEach(function(p){
+        var tv=data[op][p];
+        ranges.push(Math.max.apply(null,tv)-Math.min.apply(null,tv));
+        vals=vals.concat(tv);
+      });
+      opRbar[op]=avg(ranges); opMean[op]=avg(vals);
+    });
+    var Rbarbar = avg(ops.map(function(op){return opRbar[op];}));
+    var K1 = K1_TABLE[r];
+    var EV = Rbarbar*K1;
+    var opMeanVals = ops.map(function(op){return opMean[op];});
+    var Xdiff = Math.max.apply(null,opMeanVals) - Math.min.apply(null,opMeanVals);
+    var K2 = K_TABLE[k];
+    var nr = n*r;
+    var inside = Math.pow(Xdiff*K2,2) - Math.pow(EV,2)/nr;
+    var AV = inside>0 ? Math.sqrt(inside) : 0;
+    var GRR = Math.sqrt(EV*EV+AV*AV);
+    var partMean={};
+    parts.forEach(function(p){
+      var vals=[]; ops.forEach(function(op){ vals=vals.concat(data[op][p]); });
+      partMean[p]=avg(vals);
+    });
+    var partMeanVals = parts.map(function(p){return partMean[p];});
+    var Rp = Math.max.apply(null,partMeanVals) - Math.min.apply(null,partMeanVals);
+    var K3 = K_TABLE[n];
+    var PV = Rp*K3;
+    var TV = Math.sqrt(GRR*GRR+PV*PV);
+    return {
+      method:"xr", EV:EV, AV:AV, GRR:GRR, PV:PV, TV:TV,
+      Rbarbar:Rbarbar, opRbar:opRbar, opMean:opMean, Xdiff:Xdiff, K1:K1, K2:K2, K3:K3, Rp:Rp,
+      pctEV:100*EV/TV, pctAV:100*AV/TV, pctGRR:100*GRR/TV, pctPV:100*PV/TV,
+      ndc: Math.floor(1.41*(PV/GRR))
+    };
+  }
+
+  function computeANOVA(){
+    var ops=opIds(), parts=partIds(), r=config.trials;
+    var k=ops.length, n=parts.length;
+    var allVals=[];
+    ops.forEach(function(op){ parts.forEach(function(p){ allVals=allVals.concat(data[op][p]); }); });
+    var grandMean = avg(allVals);
+    var partMean={}, opMean={}, cellMean={};
+    parts.forEach(function(p){
+      var vals=[]; ops.forEach(function(op){ vals=vals.concat(data[op][p]); });
+      partMean[p]=avg(vals);
+    });
+    ops.forEach(function(op){
+      var vals=[]; parts.forEach(function(p){ vals=vals.concat(data[op][p]); });
+      opMean[op]=avg(vals);
+    });
+    ops.forEach(function(op){
+      cellMean[op]={};
+      parts.forEach(function(p){ cellMean[op][p]=avg(data[op][p]); });
+    });
+    var SST=0; ops.forEach(function(op){ parts.forEach(function(p){ data[op][p].forEach(function(v){ SST+=Math.pow(v-grandMean,2); }); }); });
+    var SSP=0; parts.forEach(function(p){ SSP += k*r*Math.pow(partMean[p]-grandMean,2); });
+    var SSO=0; ops.forEach(function(op){ SSO += n*r*Math.pow(opMean[op]-grandMean,2); });
+    var SSOP=0; ops.forEach(function(op){ parts.forEach(function(p){ SSOP += r*Math.pow(cellMean[op][p]-partMean[p]-opMean[op]+grandMean,2); }); });
+    var SSE=0; ops.forEach(function(op){ parts.forEach(function(p){ var m=cellMean[op][p]; data[op][p].forEach(function(v){ SSE += Math.pow(v-m,2); }); }); });
+    var dfP=n-1, dfO=k-1, dfOP=(n-1)*(k-1), dfE=n*k*(r-1);
+    var MSP=SSP/dfP, MSO=SSO/dfO, MSOP = dfOP>0 ? SSOP/dfOP : 0, MSE=SSE/dfE;
+    var F_OP = (MSOP>0 && MSE>0) ? MSOP/MSE : 0;
+    var pInt = dfOP>0 ? 1-pf(F_OP,dfOP,dfE) : 1;
+    var pooled = pInt > 0.25;
+    var varE, varOp, varInt, varReprod, varPart, MSerr, dferr;
+    if (pooled){
+      var SSEp = SSOP+SSE, dfEp = dfOP+dfE;
+      MSerr = SSEp/dfEp; dferr = dfEp;
+      varE = MSerr;
+      varOp = Math.max(0,(MSO-MSerr)/(n*r));
+      varReprod = varOp; varInt = 0;
+      varPart = Math.max(0,(MSP-MSerr)/(k*r));
+    } else {
+      MSerr = MSE; dferr = dfE;
+      varE = MSE;
+      varOp = Math.max(0,(MSO-MSOP)/(n*r));
+      varInt = Math.max(0,(MSOP-MSE)/r);
+      varReprod = varOp+varInt;
+      varPart = Math.max(0,(MSP-MSOP)/(k*r));
+    }
+    var sigma=5.15;
+    var EV = sigma*Math.sqrt(varE);
+    var AV = sigma*Math.sqrt(varReprod);
+    var GRR = sigma*Math.sqrt(varE+varReprod);
+    var PV = sigma*Math.sqrt(varPart);
+    var TV = Math.sqrt(GRR*GRR+PV*PV);
+    return {
+      method:"anova", EV:EV, AV:AV, GRR:GRR, PV:PV, TV:TV,
+      pctEV:100*EV/TV, pctAV:100*AV/TV, pctGRR:100*GRR/TV, pctPV:100*PV/TV,
+      ndc: Math.floor(1.41*(PV/GRR)),
+      anova:{SSP:SSP,SSO:SSO,SSOP:SSOP,SSE:SSE,dfP:dfP,dfO:dfO,dfOP:dfOP,dfE:dfE,
+             MSP:MSP,MSO:MSO,MSOP:MSOP,MSE:MSE,F_OP:F_OP,pInt:pInt,pooled:pooled}
+    };
+  }
+
+  function getStatus(pctGRR){
+    if (pctGRR < 10) return {level:"good", label:"Aceptable (excelente)"};
+    if (pctGRR <= 30) return {level:"warning", label:"Aceptable condicional"};
+    return {level:"critical", label:"Inaceptable"};
+  }
+
+  // ---------- rendering: data grid ----------
+  function resizeData(){
+    var ops=opIds(), parts=partIds(), r=config.trials;
+    var newData={};
+    ops.forEach(function(op,i){
+      newData[op] = newData[op] || {};
+      parts.forEach(function(p){
+        var old = (data[op] && data[op][p]) || [];
+        var arr=[];
+        for (var t=0;t<r;t++) arr.push(old[t]!==undefined ? old[t] : null);
+        newData[op][p]=arr;
+      });
+      if (!opNames[op]) opNames[op] = DEFAULT_OP_NAMES[i] || ("Operador "+(i+1));
+    });
+    parts.forEach(function(p,i){
+      if (!partNames[p]) partNames[p] = "Pieza "+(i+1);
+    });
+    data = newData;
+  }
+
+  function renderTable(){
+    var ops=opIds(), parts=partIds(), r=config.trials;
+    var table = document.getElementById("data-table");
+    var opColorClasses = ["op-ev","op-av","op-pv"];
+    var html = "<thead><tr><th rowspan='2' style='text-align:left'>Pieza</th>";
+    ops.forEach(function(op,oi){
+      html += "<th colspan='"+r+"' class='"+opColorClasses[oi % opColorClasses.length]+"'>"+
+        "<input class='op-name-input' data-op='"+op+"' value='"+opNames[op]+"' aria-label='Nombre del operador'></th>";
+    });
+    html += "</tr><tr>";
+    ops.forEach(function(op){
+      for (var t=0;t<r;t++) html += "<th>T"+(t+1)+"</th>";
+    });
+    html += "</tr></thead><tbody>";
+    parts.forEach(function(p){
+      html += "<tr><td class='part-name'><input data-part='"+p+"' value='"+partNames[p]+"' aria-label='Nombre de la pieza'></td>";
+      ops.forEach(function(op){
+        for (var t=0;t<r;t++){
+          var v = data[op][p][t];
+          html += "<td><input class='cell-input"+(v===null?" empty":"")+"' type='text' inputmode='decimal' "+
+            "data-op='"+op+"' data-part='"+p+"' data-trial='"+t+"' value='"+(v===null?"":v)+"'></td>";
+        }
+      });
+      html += "</tr>";
+    });
+    html += "</tbody>";
+    table.innerHTML = html;
+
+    table.querySelectorAll(".cell-input").forEach(function(inp){
+      inp.addEventListener("change", function(){
+        var op=inp.getAttribute("data-op"), p=inp.getAttribute("data-part"), t=+inp.getAttribute("data-trial");
+        var n = parseNum(inp.value);
+        data[op][p][t] = n;
+        inp.classList.toggle("empty", n===null);
+        usingExample = false;
+        document.getElementById("example-badge").hidden = true;
+      });
+    });
+    table.querySelectorAll(".op-name-input").forEach(function(inp){
+      inp.addEventListener("change", function(){
+        opNames[inp.getAttribute("data-op")] = inp.value || inp.getAttribute("data-op");
+      });
+    });
+    table.querySelectorAll(".part-name input").forEach(function(inp){
+      inp.addEventListener("change", function(){
+        partNames[inp.getAttribute("data-part")] = inp.value || inp.getAttribute("data-part");
+      });
+    });
+  }
+
+  function allFilled(){
+    var ok=true;
+    opIds().forEach(function(op){
+      partIds().forEach(function(p){
+        data[op][p].forEach(function(v){ if (v===null) ok=false; });
+      });
+    });
+    return ok;
+  }
+
+  // ---------- rendering: results ----------
+  function barChart(res){
+    var W=560, H=190, left=70, right=90, top=10, barH=22, gap=16;
+    var rows = [
+      {label:"EV", value:res.EV, color:"var(--series-ev)"},
+      {label:"AV", value:res.AV, color:"var(--series-av)"},
+      {label:"PV", value:res.PV, color:"var(--series-pv)"},
+      {label:"GRR", value:res.GRR, color:"var(--"+getStatus(res.pctGRR).level+")"}
+    ];
+    var maxVal = Math.max(res.TV, res.EV, res.AV, res.PV, res.GRR) * 1.08;
+    var scale = (W-left-right)/maxVal;
+    var svg = "<svg viewBox='0 0 "+W+" "+(top+rows.length*(barH+gap))+"' role='img' aria-label='Comparación de EV, AV, PV y GRR en "+config.unit+"' style='width:100%;height:auto;font-family:var(--mono)'>";
+    rows.forEach(function(row,i){
+      var y = top + i*(barH+gap);
+      var w = Math.max(2, row.value*scale);
+      svg += "<text x='0' y='"+(y+barH/2+4)+"' font-size='12' fill='var(--ink-2)'>"+row.label+"</text>";
+      svg += "<rect x='"+left+"' y='"+y+"' width='"+(W-left-right)+"' height='"+barH+"' rx='4' fill='var(--grid)' opacity='0.5'/>";
+      svg += "<rect x='"+left+"' y='"+y+"' width='"+w+"' height='"+barH+"' rx='4' fill='"+row.color+"'>"+
+             "<title>"+row.label+": "+fmt(row.value,4)+" "+config.unit+"</title></rect>";
+      svg += "<text x='"+(left+w+8)+"' y='"+(y+barH/2+4)+"' font-size='12' fill='var(--ink)' font-weight='600'>"+fmt(row.value,4)+"</text>";
+    });
+    var tvX = left + res.TV*scale;
+    if (tvX < W-right+2){
+      svg += "<line x1='"+tvX+"' y1='"+(top-4)+"' x2='"+tvX+"' y2='"+(top+rows.length*(barH+gap)-gap+4)+"' stroke='var(--muted)' stroke-width='1.5' stroke-dasharray='3,3'/>";
+      svg += "<text x='"+tvX+"' y='"+(top-8)+"' font-size='10' fill='var(--muted)' text-anchor='middle'>TV</text>";
+    }
+    svg += "</svg>";
+    return svg;
+  }
+
+  function gaugeChart(pctGRR){
+    var W=560, H=56, left=10, right=10, barH=18, y=18;
+    var w = W-left-right;
+    var x10 = left + (10/100)*w, x30 = left + (30/100)*w;
+    var markX = left + Math.min(100,pctGRR)/100*w;
+    var status = getStatus(pctGRR);
+    var svg = "<svg viewBox='0 0 "+W+" "+H+"' role='img' aria-label='%GRR = "+fmt(pctGRR,1)+" por ciento, estado "+status.label+"' style='width:100%;height:auto'>";
+    svg += "<rect x='"+left+"' y='"+y+"' width='"+(x10-left)+"' height='"+barH+"' fill='var(--good)' opacity='0.55' rx='3'/>";
+    svg += "<rect x='"+x10+"' y='"+y+"' width='"+(x30-x10)+"' height='"+barH+"' fill='var(--warning)' opacity='0.55'/>";
+    svg += "<rect x='"+x30+"' y='"+y+"' width='"+(left+w-x30)+"' height='"+barH+"' fill='var(--critical)' opacity='0.55' rx='3'/>";
+    svg += "<line x1='"+markX+"' y1='"+(y-6)+"' x2='"+markX+"' y2='"+(y+barH+6)+"' stroke='var(--ink)' stroke-width='3' stroke-linecap='round'><title>%GRR = "+fmt(pctGRR,1)+"%</title></line>";
+    svg += "<text x='"+left+"' y='"+(y+barH+18)+"' font-size='10' fill='var(--muted)'>0%</text>";
+    svg += "<text x='"+x10+"' y='"+(y+barH+18)+"' font-size='10' fill='var(--muted)' text-anchor='middle'>10%</text>";
+    svg += "<text x='"+x30+"' y='"+(y+barH+18)+"' font-size='10' fill='var(--muted)' text-anchor='middle'>30%</text>";
+    svg += "<text x='"+(left+w)+"' y='"+(y+barH+18)+"' font-size='10' fill='var(--muted)' text-anchor='end'>100%</text>";
+    svg += "</svg>";
+    return svg;
+  }
+
+  function anovaTable(a){
+    function r(label,ss,df,ms,f,p){
+      return "<tr><td>"+label+"</td><td>"+fmt(ss,6)+"</td><td>"+df+"</td><td>"+(ms!==undefined?fmt(ms,6):"—")+"</td>"+
+             "<td>"+(f!==undefined?fmt(f,3):"—")+"</td><td>"+(p!==undefined?fmt(p,3):"—")+"</td></tr>";
+    }
+    var html = "<div class='table-scroll'><table class='anova-table'><thead><tr><th>Fuente</th><th>SS</th><th>df</th><th>MS</th><th>F</th><th>p</th></tr></thead><tbody>";
+    html += r("Pieza", a.SSP, a.dfP, a.MSP);
+    html += r("Operador", a.SSO, a.dfO, a.MSO);
+    html += r("Operador × Pieza", a.SSOP, a.dfOP, a.MSOP, a.F_OP, a.pInt);
+    html += r("Equipo (error)", a.SSE, a.dfE, a.MSE);
+    html += "</tbody></table></div>";
+    html += "<p class='lede' style='max-width:none;margin-top:8px'>" +
+      (a.pooled
+        ? "Interacción Operador × Pieza no significativa (p = "+fmt(a.pInt,3)+" &gt; 0.25): se combinó con el error para estimar la repetibilidad."
+        : "Interacción Operador × Pieza significativa (p = "+fmt(a.pInt,3)+" ≤ 0.25): se mantiene separada en el modelo.") +
+      "</p>";
+    return html;
+  }
+
+  function renderResults(){
+    if (!lastResults) return;
+    var res = lastResults[activeMethod];
+    var status = getStatus(res.pctGRR);
+    var ndcWarn = res.ndc < 5;
+    var tolHtml = "";
+    if (config.lsl!==null && config.usl!==null && config.usl>config.lsl){
+      var tol = config.usl-config.lsl;
+      tolHtml = "<div class='stat-tile'><span class='label'>GRR / Tolerancia</span>"+
+        "<span class='value'>"+fmt(100*res.GRR/tol,1)+"%</span></div>";
+    }
+    var html = "";
+    html += "<div class='stat-grid'>"+
+      "<div class='stat-tile'><span class='label'>EV (repetibilidad)</span><span class='value'>"+fmt(res.EV)+" "+config.unit+"</span></div>"+
+      "<div class='stat-tile'><span class='label'>AV (reproducibilidad)</span><span class='value'>"+fmt(res.AV)+" "+config.unit+"</span></div>"+
+      "<div class='stat-tile'><span class='label'>PV (entre piezas)</span><span class='value'>"+fmt(res.PV)+" "+config.unit+"</span></div>"+
+      "<div class='stat-tile status status-"+status.level+"'><span class='label'>GRR</span><span class='value'>"+fmt(res.GRR)+" "+config.unit+"</span></div>"+
+      "<div class='stat-tile'><span class='label'>ndc</span><span class='value'>"+res.ndc+(ndcWarn?" ⚠":"")+"</span></div>"+
+      tolHtml+
+      "</div>";
+
+    html += "<div class='chart-wrap'>"+
+      "<h3>%GRR vs. criterio de aceptación</h3>"+gaugeChart(res.pctGRR)+
+      "<div class='legend'><span><span class='swatch' style='background:var(--good)'></span>&lt;10% excelente</span>"+
+      "<span><span class='swatch' style='background:var(--warning)'></span>10–30% aceptable condicional</span>"+
+      "<span><span class='swatch' style='background:var(--critical)'></span>&gt;30% inaceptable</span></div>"+
+      "</div>";
+
+    html += "<div class='chart-wrap'>"+
+      "<h3>Comparación en "+config.unit+"</h3>"+barChart(res)+"</div>";
+
+    var interpClass = "status-"+status.level;
+    html += "<div class='interp "+interpClass+"'><b>"+status.label+".</b> %GRR = "+fmt(res.pctGRR,1)+"%. "+
+      (ndcWarn ? "ndc = "+res.ndc+", por debajo de 5: el sistema distingue mal entre piezas. " : "ndc = "+res.ndc+", suficiente para distinguir piezas. ")+
+      (status.level==="critical" ? "Revisa el instrumento, estandariza el método de medición y repite el estudio." :
+       status.level==="warning" ? "Puede ser aceptable según la criticidad de la aplicación; valora mejorar el sistema." :
+       "El sistema de medición es confiable para este proceso.")+
+      "</div>";
+
+    if (activeMethod==="anova"){
+      html += "<h3>Tabla ANOVA</h3>" + anovaTable(res.anova);
+    }
+
+    document.getElementById("results-body").innerHTML = html;
+  }
+
+  // ---------- actions ----------
+  function recomputeConfigFromInputs(){
+    config.operators = +document.getElementById("cfg-operators").value;
+    config.parts = +document.getElementById("cfg-parts").value;
+    config.trials = +document.getElementById("cfg-trials").value;
+    config.unit = document.getElementById("cfg-unit").value.trim() || "mm";
+    config.lsl = parseNum(document.getElementById("cfg-lsl").value);
+    config.usl = parseNum(document.getElementById("cfg-usl").value);
+  }
+
+  function onConfigChange(){
+    recomputeConfigFromInputs();
+    resizeData();
+    usingExample = false;
+    document.getElementById("example-badge").hidden = true;
+    renderTable();
+    document.getElementById("results-card").hidden = true;
+  }
+
+  function loadExample(){
+    config.operators = EXAMPLE.operators; config.parts = EXAMPLE.parts; config.trials = EXAMPLE.trials;
+    config.unit = EXAMPLE.unit; config.lsl = EXAMPLE.lsl; config.usl = EXAMPLE.usl;
+    opNames = JSON.parse(JSON.stringify(EXAMPLE.opNames));
+    partNames = JSON.parse(JSON.stringify(EXAMPLE.partNames));
+    data = JSON.parse(JSON.stringify(EXAMPLE.data));
+    usingExample = true;
+    document.getElementById("cfg-operators").value = config.operators;
+    document.getElementById("cfg-parts").value = config.parts;
+    document.getElementById("cfg-trials").value = config.trials;
+    document.getElementById("cfg-unit").value = config.unit;
+    document.getElementById("cfg-lsl").value = config.lsl;
+    document.getElementById("cfg-usl").value = config.usl;
+    document.getElementById("example-badge").hidden = false;
+    renderTable();
+    document.getElementById("results-card").hidden = true;
+  }
+
+  function clearData(){
+    opIds().forEach(function(op){ partIds().forEach(function(p){ data[op][p] = data[op][p].map(function(){return null;}); }); });
+    usingExample = false;
+    document.getElementById("example-badge").hidden = true;
+    renderTable();
+    document.getElementById("results-card").hidden = true;
+  }
+
+  function calculate(){
+    var msg = document.getElementById("data-msg");
+    if (!allFilled()){
+      msg.textContent = "Completa todas las lecturas antes de calcular (resaltadas en ámbar).";
+      document.querySelectorAll(".cell-input").forEach(function(inp){
+        var op=inp.getAttribute("data-op"), p=inp.getAttribute("data-part"), t=+inp.getAttribute("data-trial");
+        inp.classList.toggle("empty", data[op][p][t]===null);
+      });
+      return;
+    }
+    msg.textContent = "";
+    lastResults = {xr: computeXbarR(), anova: computeANOVA()};
+    document.getElementById("results-card").hidden = false;
+    renderResults();
+  }
+
+  function csvEscape(s){ s = String(s); return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; }
+
+  function buildCSV(){
+    var lines = [];
+    lines.push(["Estudio Gage R&R"].join(","));
+    lines.push(["Unidad", config.unit].join(","));
+    if (config.lsl!==null && config.usl!==null) lines.push(["LSL",config.lsl,"USL",config.usl].join(","));
+    lines.push([]);
+    var header = ["Pieza"];
+    opIds().forEach(function(op){ for (var t=0;t<config.trials;t++) header.push(csvEscape(opNames[op])+" T"+(t+1)); });
+    lines.push(header.join(","));
+    partIds().forEach(function(p){
+      var row = [csvEscape(partNames[p])];
+      opIds().forEach(function(op){ data[op][p].forEach(function(v){ row.push(v===null?"":v); }); });
+      lines.push(row.join(","));
+    });
+    lines.push([]);
+    if (lastResults){
+      ["xr","anova"].forEach(function(m){
+        var r = lastResults[m];
+        lines.push([m==="xr" ? "Método: Promedio y Rango" : "Método: ANOVA"].join(","));
+        lines.push(["EV",r.EV,"AV",r.AV,"GRR",r.GRR,"PV",r.PV,"TV",r.TV].join(","));
+        lines.push(["%EV",r.pctEV.toFixed(2),"%AV",r.pctAV.toFixed(2),"%GRR",r.pctGRR.toFixed(2),"%PV",r.pctPV.toFixed(2),"ndc",r.ndc].join(","));
+        lines.push([]);
+      });
+    }
+    return lines.join("\n");
+  }
+
+  function exportCSV(){
+    var csv = buildCSV();
+    var btn = document.getElementById("btn-export");
+    btn.disabled = true;
+    (async function(){
+      try{
+        var downloads = await (window.claude && window.claude.use ? window.claude.use("downloads") : Promise.resolve(null));
+        var filename = "estudio-grr.csv";
+        if (downloads){
+          var res = await downloads.save({filename: filename, data: csv});
+          btn.textContent = res.status==="saved" ? "Descargado ✓" : "Enviado ✓";
+        } else {
+          btn.textContent = "Exportación no disponible aquí";
+        }
+      } catch(e){
+        btn.textContent = (e && e.code==="declined") ? "Descargar CSV" : "No se pudo exportar";
+      } finally {
+        setTimeout(function(){ btn.textContent="Descargar CSV"; btn.disabled=false; }, 2200);
+      }
+    })();
+  }
+
+  // ---------- wire up ----------
+  document.getElementById("cfg-operators").value = config.operators;
+  document.getElementById("cfg-parts").value = config.parts;
+  document.getElementById("cfg-trials").value = config.trials;
+  document.getElementById("cfg-lsl").value = EXAMPLE.lsl;
+  document.getElementById("cfg-usl").value = EXAMPLE.usl;
+  ["cfg-operators","cfg-parts","cfg-trials"].forEach(function(id){
+    document.getElementById(id).addEventListener("change", onConfigChange);
+  });
+  document.getElementById("cfg-unit").addEventListener("change", recomputeConfigFromInputs);
+  document.getElementById("cfg-lsl").addEventListener("change", recomputeConfigFromInputs);
+  document.getElementById("cfg-usl").addEventListener("change", recomputeConfigFromInputs);
+  document.getElementById("btn-example").addEventListener("click", loadExample);
+  document.getElementById("btn-clear").addEventListener("click", clearData);
+  document.getElementById("btn-calc").addEventListener("click", calculate);
+  document.getElementById("btn-export").addEventListener("click", exportCSV);
+  document.querySelectorAll(".tab").forEach(function(tab){
+    tab.addEventListener("click", function(){
+      document.querySelectorAll(".tab").forEach(function(t){ t.classList.remove("active"); });
+      tab.classList.add("active");
+      activeMethod = tab.getAttribute("data-method");
+      renderResults();
+    });
+  });
+
+  renderTable();
+})();
+</script>
+
+</body></html>

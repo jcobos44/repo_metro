@@ -1,0 +1,607 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Micrómetro de exteriores</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@500&family=Public+Sans:wght@400;600&display=swap">
+<style>
+/* Layout: banco de metrología. A la izquierda el instrumento completo y los controles de la lección;
+   a la derecha la lupa sobre las escalas y la suma de la lectura. */
+:root{
+  --bg:#e9edf2; --stage:#dde3ea; --surface:#f8fafc; --ink:#17202b; --muted:#566373; --line:#c3ccd7;
+  --accent:#2440b8; --accent-ink:#ffffff;
+  --enamel:#44536b; --enamel-hi:#61728e; --plate:#2c3748; --plate-ink:#d9e0ea;
+  --steel-hi:#f6f8fa; --steel:#c4ccd6; --steel-lo:#8893a1; --engrave:#161c25;
+  --piece:#d2a94e; --piece-edge:#8b6a1e;
+  --c-mm:#1556c0; --c-half:#a84400; --c-th:#a3166e;      /* texto sobre el fondo */
+  --m-mm:#1556c0; --m-half:#b34a00; --m-th:#a3166e;      /* marcas sobre el acero, que es claro en ambos temas */
+  --ok:#17693a; --bad:#a32222;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif;
+  --body:'Public Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#11151b; --stage:#181e27; --surface:#1d2530; --ink:#e8edf3; --muted:#9aa7b7; --line:#313c4b;
+    --accent:#8fa6ff; --accent-ink:#0d1220;
+    --enamel:#52627c; --enamel-hi:#7385a2; --plate:#232d3c; --plate-ink:#d9e0ea;
+    --steel-hi:#e9edf1; --steel:#b5bec9; --steel-lo:#74808e; --engrave:#12171f;
+    --piece:#c79d43; --piece-edge:#6f5415;
+    --c-mm:#86b4ff; --c-half:#ffa862; --c-th:#ff8ccb;
+    --ok:#6fd39a; --bad:#ff8f8f;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#11151b; --stage:#181e27; --surface:#1d2530; --ink:#e8edf3; --muted:#9aa7b7; --line:#313c4b;
+  --accent:#8fa6ff; --accent-ink:#0d1220;
+  --enamel:#52627c; --enamel-hi:#7385a2; --plate:#232d3c; --plate-ink:#d9e0ea;
+  --steel-hi:#e9edf1; --steel:#b5bec9; --steel-lo:#74808e; --engrave:#12171f;
+  --piece:#c79d43; --piece-edge:#6f5415;
+  --c-mm:#86b4ff; --c-half:#ffa862; --c-th:#ff8ccb;
+  --ok:#6fd39a; --bad:#ff8f8f;
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:clamp(15px,1.15vw,18px);line-height:1.5}
+.app{max-width:1480px;margin:0 auto;padding-inline:clamp(16px,2.4vw,36px);padding-block:18px 32px;display:flex;flex-direction:column;gap:16px}
+
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px}
+.eyebrow{font-family:var(--mono);font-size:.78em;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+h1{font-family:var(--display);font-weight:600;font-size:clamp(30px,3.6vw,50px);line-height:1;margin:2px 0 0;letter-spacing:.015em;text-transform:uppercase;text-wrap:balance}
+.top-right{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+
+.tabs{display:flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:5px;overflow:hidden;background:var(--surface)}
+.tabs button{font:inherit;font-weight:600;color:var(--muted);background:none;border:0;border-right:1px solid var(--line);padding:.55em 1em;cursor:pointer}
+.tabs button:last-child{border-right:0}
+.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+
+.btn{font:inherit;font-weight:600;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:.5em .9em;cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:default}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.bench{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:880px){.bench{grid-template-columns:minmax(0,1fr)}}
+.col{display:flex;flex-direction:column;gap:14px;min-width:0}
+.stage{background:var(--stage);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.stage svg{display:block;width:100%;height:auto}
+.cap{font-family:var(--mono);font-size:.74em;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:8px 12px 0}
+
+.panel{display:flex;flex-direction:column;gap:12px;min-height:11.5em}
+.panel p{margin:0;max-width:62ch}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.lbl{font-weight:600;margin-right:4px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.muted{color:var(--muted)}
+.step-n{font-family:var(--mono);font-size:.8em;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.panel h2{font-family:var(--display);font-weight:600;font-size:1.9em;line-height:1.1;margin:0;text-wrap:balance}
+.desc-t{font-family:var(--display);font-weight:600;font-size:1.6em;line-height:1.1}
+.slider{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center}
+.slider input{width:100%;accent-color:var(--accent)}
+.slider output{font-family:var(--mono);font-variant-numeric:tabular-nums;min-width:8ch;text-align:right}
+.tips{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:4px;max-width:64ch}
+.tips b.mm{color:var(--c-mm)} .tips b.half{color:var(--c-half)} .tips b.th{color:var(--c-th)}
+#quiz{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+#ans{font:inherit;font-family:var(--mono);width:9ch;padding:.5em .6em;border:1px solid var(--line);border-radius:4px;background:var(--surface);color:var(--ink)}
+#fb{font-weight:600;min-height:1.5em}
+#fb.ok{color:var(--ok)} #fb.bad{color:var(--bad)}
+
+.sum{display:flex;flex-direction:column}
+.sum button{font:inherit;color:inherit;background:none;border:0;border-bottom:1px solid var(--line);padding:.55em 2px;display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:12px;align-items:center;text-align:left;cursor:pointer}
+.sum .sw{width:5px;height:1.5em;border-radius:1px}
+.r-mm .sw{background:var(--c-mm)} .r-half .sw{background:var(--c-half)} .r-th .sw{background:var(--c-th)}
+.sum .k small{display:block;color:var(--muted);font-size:.85em}
+.sum .v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:1.35em}
+.r-mm .v{color:var(--c-mm)} .r-half .v{color:var(--c-half)} .r-th .v{color:var(--c-th)}
+.sum button.dim{opacity:.3}
+.total{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:.35em 2px 0}
+.total .k{font-family:var(--mono);font-size:.78em;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.total .v{font-family:var(--display);font-weight:600;font-size:clamp(44px,5vw,72px);line-height:1;font-variant-numeric:tabular-nums}
+.total .v small{font-size:.45em;color:var(--muted);font-weight:500}
+
+/* instrumento */
+.eng{font-family:var(--display);font-weight:500;fill:var(--engrave);text-anchor:middle}
+.tk line{stroke:var(--engrave);stroke-width:.8}
+.zk line{stroke:var(--engrave);stroke-width:2}
+.kn line{stroke:var(--steel-lo);stroke-width:1}
+.steel{fill:url(#gSteel);stroke:var(--steel-lo);stroke-width:1}
+#frame{fill:var(--enamel);stroke:var(--enamel-hi);stroke-width:1.5}
+#frame.hl{stroke:var(--accent);stroke-width:4}
+#hl{fill:none;stroke:var(--accent);stroke-width:3}
+#labels text{font-family:var(--display);font-weight:600;font-size:17px;fill:var(--ink);text-anchor:middle;cursor:pointer}
+#labels text.on{fill:var(--accent)}
+#labels line{stroke:var(--muted);stroke-width:1}
+#clic{font-family:var(--mono);font-size:14px;fill:var(--accent);text-anchor:middle}
+.co text{font-family:var(--display);font-weight:600;font-size:25px}
+.co.mm line{stroke:var(--m-mm)} .co.mm text{fill:var(--c-mm)}
+.co.half line{stroke:var(--m-half)} .co.half text{fill:var(--c-half)}
+.co.th line{stroke:var(--m-th)} .co.th text{fill:var(--c-th)} .co.th rect{fill:var(--surface);stroke:var(--m-th);stroke-width:1.5}
+.co.dim{opacity:.16}
+</style>
+
+<div class="app">
+  <header class="top">
+    <div>
+      <div class="eyebrow">Rango 0–25 mm · Resolución 0.01 mm</div>
+      <h1>Micrómetro de exteriores</h1>
+    </div>
+    <div class="top-right">
+      <div class="tabs" role="tablist" aria-label="Secciones de la lección">
+        <button role="tab" id="t-partes" data-tab="partes" aria-selected="true">Partes</button>
+        <button role="tab" id="t-pasos" data-tab="pasos" aria-selected="false">Cómo se usa</button>
+        <button role="tab" id="t-lectura" data-tab="lectura" aria-selected="false">Lectura</button>
+        <button role="tab" id="t-practica" data-tab="practica" aria-selected="false">Práctica</button>
+      </div>
+      <button class="btn" id="b-full" type="button" hidden>Pantalla completa</button>
+    </div>
+  </header>
+
+  <main class="bench">
+    <div class="col">
+      <div class="stage">
+        <svg id="main" viewBox="52 36 820 300" role="img" aria-label="Micrómetro de exteriores visto de lado">
+          <defs>
+            <linearGradient id="gSteel" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" style="stop-color:var(--steel-lo)"/>
+              <stop offset=".26" style="stop-color:var(--steel-hi)"/>
+              <stop offset=".62" style="stop-color:var(--steel)"/>
+              <stop offset="1" style="stop-color:var(--steel-lo)"/>
+            </linearGradient>
+          </defs>
+          <rect id="spindle" class="steel" x="191" y="117" width="209" height="26"/>
+          <rect id="sptip" x="191" y="117" width="4" height="26" fill="var(--steel-lo)"/>
+          <g id="piece"></g>
+          <path id="frame" d="M70 108Q70 100 78 100L118 100L118 158C118 250 330 250 330 158L330 100L392 100Q400 100 400 108L400 170C400 350 70 350 70 170Z"/>
+          <rect x="170" y="243" width="130" height="42" rx="8" fill="var(--plate)"/>
+          <text x="235" y="262" font-size="14" style="font-family:var(--display);font-weight:600;fill:var(--plate-ink);text-anchor:middle;letter-spacing:.04em">0–25 mm</text>
+          <text x="235" y="278" font-size="13" style="font-family:var(--display);font-weight:500;fill:var(--plate-ink);text-anchor:middle;letter-spacing:.04em">0.01 mm</text>
+          <rect class="steel" x="118" y="117" width="22" height="26"/>
+          <rect x="136" y="117" width="4" height="26" fill="var(--steel-lo)"/>
+          <rect x="362" y="100" width="20" height="60" fill="var(--plate)" opacity=".55"/>
+          <g id="lever" transform="rotate(-40 372 100)">
+            <rect x="369" y="74" width="6" height="28" rx="3" fill="var(--steel-lo)" stroke="var(--engrave)" stroke-width=".6"/>
+          </g>
+          <circle cx="372" cy="100" r="6" fill="var(--steel)" stroke="var(--steel-lo)"/>
+          <rect class="steel" x="400" y="106" width="212" height="48"/>
+          <g id="s-ticks" class="tk"></g>
+          <g id="moving">
+            <polygon class="steel" points="426,105 437,96 625,96 625,164 437,164 426,155"/>
+            <g id="m-tt" class="tk"></g>
+            <g id="m-kn" class="kn"></g>
+            <rect class="steel" x="625" y="118" width="8" height="24"/>
+            <rect class="steel" x="633" y="114" width="42" height="32" rx="4"/>
+            <g id="r-kn" class="kn"></g>
+          </g>
+          <text id="clic" x="650" y="98"></text>
+          <rect id="hl" rx="4" hidden></rect>
+          <g id="labels">
+            <text data-part="yunque" x="104" y="56">Yunque</text><line x1="110" y1="62" x2="129" y2="115"/>
+            <text data-part="husillo" id="l-hus" x="260" y="56">Husillo</text><line id="ll-hus" x1="260" y1="62" x2="260" y2="115"/>
+            <text data-part="seguro" x="360" y="56">Seguro</text><line x1="360" y1="62" x2="357" y2="77"/>
+            <text data-part="cilindro" id="l-cil" x="440" y="56">Cilindro</text><line id="ll-cil" x1="440" y1="62" x2="440" y2="104"/>
+            <text data-part="tambor" id="l-tam" x="580" y="56">Tambor</text><line id="ll-tam" x1="580" y1="62" x2="580" y2="94"/>
+            <text data-part="trinquete" id="l-tri" x="700" y="56">Trinquete</text><line id="ll-tri" x1="700" y1="62" x2="700" y2="112"/>
+            <text data-part="arco" x="235" y="329">Arco</text><line x1="235" y1="313" x2="235" y2="300"/>
+          </g>
+        </svg>
+      </div>
+
+      <section class="panel" id="p-partes" role="tabpanel" aria-labelledby="t-partes">
+        <div class="chips" id="part-chips"></div>
+        <div class="desc-t" id="part-t">Un instrumento para centésimas</div>
+        <p id="part-d">Mide espesores y diámetros exteriores con una resolución de 0.01 mm. Este modelo cubre de 0 a 25 mm. Elige una parte para ubicarla en el dibujo.</p>
+      </section>
+
+      <section class="panel" id="p-pasos" role="tabpanel" aria-labelledby="t-pasos" hidden>
+        <div class="row"><span class="lbl">Pieza de ejemplo</span><div class="chips" id="piece-chips"></div></div>
+        <div>
+          <div class="step-n" id="step-n">Paso 1 de 7</div>
+          <h2 id="step-t"></h2>
+        </div>
+        <p id="step-d"></p>
+        <div class="row">
+          <button class="btn" id="b-prev" type="button">Anterior</button>
+          <button class="btn primary" id="b-play" type="button">Reproducir paso</button>
+          <button class="btn" id="b-next" type="button">Siguiente</button>
+          <button class="btn" id="b-all" type="button">Reproducir todo</button>
+        </div>
+      </section>
+
+      <section class="panel" id="p-lectura" role="tabpanel" aria-labelledby="t-lectura" hidden>
+        <div class="slider">
+          <label class="lbl" for="sl">Abertura</label>
+          <input type="range" id="sl" min="0" max="25" step="0.01" value="7.28">
+          <output id="sl-out" for="sl">7.28 mm</output>
+        </div>
+        <div class="row">
+          <button class="btn" type="button" data-d="-0.5">− 0.50</button>
+          <button class="btn" type="button" data-d="-0.01">− 0.01</button>
+          <button class="btn" type="button" data-d="0.01">+ 0.01</button>
+          <button class="btn" type="button" data-d="0.5">+ 0.50</button>
+          <span class="muted">Una vuelta del tambor = 0.50 mm</span>
+        </div>
+        <ol class="tips">
+          <li><b class="mm">Milímetros enteros:</b> la última raya superior del cilindro que el tambor deja ver.</li>
+          <li><b class="half">Medio milímetro:</b> si después de esa raya asoma una raya inferior, suma 0.50.</li>
+          <li><b class="th">Tambor:</b> la división que coincide con la línea de referencia, multiplicada por 0.01.</li>
+        </ol>
+        <p class="muted">Cuidado cuando el tambor marca 48 o 49: la siguiente raya del cilindro parece asomar, pero todavía no cuenta.</p>
+      </section>
+
+      <section class="panel" id="p-practica" role="tabpanel" aria-labelledby="t-practica" hidden>
+        <p>Lee la medida en la vista ampliada y escríbela con dos decimales.</p>
+        <form id="quiz">
+          <label class="lbl" for="ans">Tu lectura (mm)</label>
+          <input id="ans" inputmode="decimal" autocomplete="off" placeholder="0.00">
+          <button class="btn primary" type="submit">Comprobar</button>
+          <button class="btn" type="button" id="b-show">Ver solución</button>
+          <button class="btn" type="button" id="b-new">Nueva medida</button>
+        </form>
+        <p id="fb" role="status"></p>
+        <p class="muted" id="score">Aciertos: 0 de 0</p>
+      </section>
+    </div>
+
+    <div class="col">
+      <div class="stage">
+        <div class="cap">Vista ampliada de las escalas</div>
+        <svg id="zoom" viewBox="0 0 640 300" role="img" aria-label="Escala del cilindro y escala del tambor ampliadas">
+          <rect id="z-frame" x="-10" y="30" width="0" height="240" fill="var(--enamel)"/>
+          <rect id="z-sleeve" class="steel" x="-10" y="70" width="430" height="160"/>
+          <g id="z-st" class="zk"></g>
+          <polygon class="steel" points="401.5,64 461.5,24 650,24 650,276 461.5,276 401.5,236"/>
+          <line x1="461.5" y1="24" x2="461.5" y2="276" stroke="var(--steel-lo)" stroke-width="1" opacity=".6"/>
+          <g id="z-tt" class="zk"></g>
+          <g id="z-kn" class="kn"></g>
+          <g id="z-call"></g>
+        </svg>
+      </div>
+      <div class="sum" id="sum">
+        <button type="button" class="r-mm" data-f="1"><span class="sw"></span><span class="k">Cilindro<small>milímetros enteros</small></span><span class="v" id="v-mm">7.00</span></button>
+        <button type="button" class="r-half" data-f="2"><span class="sw"></span><span class="k">Cilindro<small>raya de medio milímetro</small></span><span class="v" id="v-half">0.00</span></button>
+        <button type="button" class="r-th" data-f="3"><span class="sw"></span><span class="k">Tambor<small id="k-th">28 divisiones × 0.01</small></span><span class="v" id="v-th">0.28</span></button>
+        <div class="total"><span class="k">Medida</span><span class="v"><span id="v-tot">7.28</span> <small>mm</small></span></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+(() => {
+  const TAU = Math.PI * 2, K = 7, AX = 140, X0 = 425, CY = 130, E = 400, Z = 34, ZC = 150;
+  const $ = id => document.getElementById(id);
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const wrap = d => d - 50 * Math.round(d / 50);
+  const f2 = n => n.toFixed(2);
+
+  const PIECES = [
+    { id: 'lamina', name: 'Lámina', v: 0.86, shape: 'sheet' },
+    { id: 'alambre', name: 'Alambre', v: 2.34, shape: 'round' },
+    { id: 'balin', name: 'Balín', v: 6.35, shape: 'round' },
+    { id: 'eje', name: 'Eje', v: 12.70, shape: 'round' },
+    { id: 'bloque', name: 'Bloque', v: 20.00, shape: 'block' }
+  ];
+  const PARTS = [
+    ['yunque', 'Yunque', 'Tope fijo. La pieza se apoya en su cara de medición.'],
+    ['husillo', 'Husillo', 'Eje móvil que cierra sobre la pieza. Avanza 0.50 mm por cada vuelta completa del tambor.'],
+    ['arco', 'Arco', 'Cuerpo en forma de C. Se sostiene por la placa aislante para que el calor de la mano no dilate el instrumento.'],
+    ['seguro', 'Seguro', 'Bloquea el husillo para que la medida no cambie mientras se lee.'],
+    ['cilindro', 'Cilindro', 'Escala fija. Arriba de la línea de referencia marca los milímetros; abajo, los medios milímetros.'],
+    ['tambor', 'Tambor', 'Escala móvil con 50 divisiones. Cada división vale 0.01 mm.'],
+    ['trinquete', 'Trinquete', 'Perilla que patina cuando se alcanza la presión correcta. Con ella se da el apriete final.']
+  ];
+  const STEPS = [
+    ['Limpia y comprueba el cero', 'Pasa un paño limpio por las dos caras de medición y cierra el micrómetro con el trinquete. Debe marcar 0.00 mm. Si marca otra cosa, hay que ajustarlo antes de medir.'],
+    ['Abre un poco más que la pieza', 'Gira el tambor para retirar el husillo hasta que la pieza quepa con holgura. Cada vuelta completa lo mueve 0.50 mm.'],
+    ['Apoya la pieza en el yunque', 'Sostén el micrómetro por el arco y coloca la pieza contra el tope fijo, recta y sin inclinarla.'],
+    ['Acerca el husillo con el tambor', 'Gira el tambor hasta que el husillo quede muy cerca de la pieza, sin llegar a apretarla.'],
+    ['Termina con el trinquete', 'El último tramo se cierra solo con el trinquete. Gíralo hasta oír tres clics: así la presión es la misma en cada medición y la pieza no se deforma.'],
+    ['Pon el seguro', 'Bloquea el husillo. La medida ya no cambia aunque retires el micrómetro de la pieza.'],
+    ['Lee la medida', 'Suma tres valores: los milímetros enteros descubiertos en el cilindro, la raya de medio milímetro si se ve, y la división del tambor que coincide con la línea de referencia.']
+  ];
+
+  const state = { m: 7.28, pieceA: 0, lockA: -40, ratchet: 0, focus: 0, hideSum: false, tab: 'partes', part: null, step: 0, pieceId: 'balin', clics: 0 };
+  let seq = 0, auto = false, quizH = 0, hits = 0, tries = 0, answered = false;
+  const tw = {};
+
+  function tween(prop, to, ms) {
+    const id = (tw[prop] = (tw[prop] || 0) + 1), from = state[prop];
+    if (reduced || ms <= 0 || from === to) { state[prop] = to; render(); return Promise.resolve(true); }
+    return new Promise(res => {
+      const t0 = performance.now();
+      const f = now => {
+        if (tw[prop] !== id) return res(false);
+        const p = Math.min(1, (now - t0) / ms), e = p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+        state[prop] = from + (to - from) * e; render();
+        if (p < 1) requestAnimationFrame(f); else { state[prop] = to; render(); res(true); }
+      };
+      requestAnimationFrame(f);
+    });
+  }
+  const wait = ms => new Promise(r => setTimeout(r, reduced ? Math.min(ms, 400) : ms));
+  function stopAll() { seq++; auto = false; for (const k in tw) tw[k]++; }
+
+  /* ---------- dibujo estático ---------- */
+  (function buildSleeve() {
+    let s = `<line x1="408" y1="${CY}" x2="604" y2="${CY}"/>`;
+    for (let i = 0; i <= 50; i++) {
+      const x = X0 + i * K / 2;
+      if (i % 2 === 0) {
+        const v = i / 2, five = v % 5 === 0;
+        s += `<line x1="${x}" y1="${CY}" x2="${x}" y2="${CY - (five ? 12 : 8)}"/>`;
+        if (five) s += `<text x="${x}" y="${CY - 14.5}" class="eng" font-size="9">${v}</text>`;
+      } else s += `<line x1="${x}" y1="${CY}" x2="${x}" y2="${CY + 6}"/>`;
+    }
+    $('s-ticks').innerHTML = s;
+  })();
+
+  function buildPiece() {
+    const p = PIECES.find(x => x.id === state.pieceId), w = p.v * K;
+    const st = 'fill="var(--piece)" stroke="var(--piece-edge)" stroke-width="1"';
+    $('piece').innerHTML = p.shape === 'round'
+      ? `<circle cx="${AX + w / 2}" cy="${CY}" r="${w / 2}" ${st}/>`
+      : p.shape === 'sheet'
+        ? `<rect x="${AX}" y="56" width="${w}" height="124" rx="1" ${st}/>`
+        : `<rect x="${AX}" y="${CY - 38}" width="${w}" height="76" rx="2" ${st}/>`;
+  }
+
+  /* ---------- render ---------- */
+  const el = {};
+  ['spindle', 'sptip', 'moving', 'm-tt', 'm-kn', 'r-kn', 'piece', 'lever', 'clic', 'hl', 'frame', 'labels',
+    'z-frame', 'z-sleeve', 'z-st', 'z-tt', 'z-kn', 'z-call', 'v-mm', 'v-half', 'v-th', 'k-th', 'v-tot', 'sl', 'sl-out'].forEach(k => el[k] = $(k));
+
+  function knurl(x1, x2, cy, R, N, ang) {
+    let s = '';
+    for (let k = 0; k < N; k++) {
+      const a = k * TAU / N - ang, c = Math.cos(a);
+      if (c < .1) continue;
+      const y = (cy - R * Math.sin(a)).toFixed(2);
+      s += `<line x1="${x1}" x2="${x2}" y1="${y}" y2="${y}" opacity="${Math.min(.75, c).toFixed(2)}"/>`;
+    }
+    return s;
+  }
+
+  function render() {
+    const m = Math.max(0, Math.min(25, state.m));
+    const h = Math.round(m * 100), whole = Math.floor(h / 100), rem = h % 100, half = rem >= 50, th = rem % 50;
+    const t = ((m * 100) % 50 + 50) % 50, phi = m * 2 * TAU;
+    const face = AX + m * K, xe = X0 + m * K;
+
+    el.spindle.setAttribute('x', face.toFixed(2)); el.spindle.setAttribute('width', (400 - face).toFixed(2));
+    el.sptip.setAttribute('x', face.toFixed(2));
+    el.moving.setAttribute('transform', `translate(${(m * K).toFixed(2)},0)`);
+    el.piece.setAttribute('opacity', state.pieceA.toFixed(2));
+    el.piece.setAttribute('transform', `translate(0,${(-(1 - state.pieceA) * 26).toFixed(1)})`);
+    el.lever.setAttribute('transform', `rotate(${state.lockA.toFixed(1)} 372 100)`);
+
+    // tambor, vista general
+    let s = '';
+    for (let n = 0; n < 50; n++) {
+      const a = wrap(n - t) * TAU / 50, c = Math.cos(a);
+      if (c < .12) continue;
+      const sn = Math.sin(a), five = n % 5 === 0, L = five ? 12 : 7, r2 = 25.5 + 8.5 * (L / 12), op = Math.min(1, c * 2.2).toFixed(2);
+      s += `<line x1="${X0 + 1.5}" y1="${(CY - 25.5 * sn).toFixed(2)}" x2="${X0 + 1.5 + L}" y2="${(CY - r2 * sn).toFixed(2)}" opacity="${op}"/>`;
+      if (five) s += `<text class="eng" font-size="9" dy=".35em" transform="translate(${X0 + 22},${(CY - 34 * sn).toFixed(2)}) scale(1,${c.toFixed(3)})" opacity="${op}">${n}</text>`;
+    }
+    el['m-tt'].innerHTML = s;
+    el['m-kn'].innerHTML = knurl(522, 615, CY, 34, 40, phi);
+    el['r-kn'].innerHTML = knurl(638, 671, CY, 16, 20, phi + state.ratchet);
+
+    el.clic.setAttribute('x', (xe + 228).toFixed(1));
+    el.clic.textContent = state.tab === 'pasos' ? Array(state.clics).fill('clic').join(' · ') : '';
+
+    // etiquetas y resaltado de partes
+    const showLabels = state.tab === 'partes';
+    el.labels.toggleAttribute('hidden', !showLabels);
+    if (showLabels) {
+      const pos = { hus: [(face + 330) / 2, 115], cil: [Math.max((400 + xe) / 2, 452), 104], tam: [xe + 100, 94], tri: [xe + 228, 112] };
+      for (const k in pos) {
+        const [x, y] = pos[k], tx = $('l-' + k), ln = $('ll-' + k);
+        tx.setAttribute('x', x.toFixed(1));
+        ln.setAttribute('x1', x.toFixed(1)); ln.setAttribute('x2', x.toFixed(1)); ln.setAttribute('y2', y);
+      }
+      el.labels.querySelectorAll('text').forEach(tx => tx.classList.toggle('on', tx.dataset.part === state.part));
+    }
+    const boxes = {
+      yunque: [115, 112, 28, 36], husillo: [face - 3, 112, 333 - face + 3, 36], seguro: [358, 68, 28, 96],
+      cilindro: [398, 101, xe - 398 + 1, 58], tambor: [xe - 2, 91, 205, 78], trinquete: [xe + 198, 109, 56, 42]
+    };
+    const b = showLabels && boxes[state.part];
+    el.hl.toggleAttribute('hidden', !b);
+    if (b) ['x', 'y', 'width', 'height'].forEach((a, i) => el.hl.setAttribute(a, Math.max(0, b[i]).toFixed(1)));
+    el.frame.classList.toggle('hl', showLabels && state.part === 'arco');
+
+    // lupa: cilindro
+    const xs = E - (m + 3.57) * Z, sx = Math.max(-10, xs);
+    el['z-frame'].setAttribute('width', Math.max(0, xs + 10).toFixed(1));
+    el['z-sleeve'].setAttribute('x', sx.toFixed(1)); el['z-sleeve'].setAttribute('width', (420 - sx).toFixed(1));
+    s = `<line x1="${Math.max(-10, E - (m + .8) * Z).toFixed(1)}" y1="${ZC}" x2="${E + 2}" y2="${ZC}"/>`;
+    for (let i = Math.max(0, Math.ceil((m - 12.5) * 2)); i <= Math.min(50, Math.floor((m + .2) * 2)); i++) {
+      const v = i / 2, x = (E - (m - v) * Z).toFixed(2);
+      if (i % 2 === 0) {
+        const five = v % 5 === 0;
+        s += `<line x1="${x}" y1="${ZC}" x2="${x}" y2="${five ? 116 : 126}"/>`;
+        if (five) s += `<text x="${x}" y="108" class="eng" font-size="21">${v}</text>`;
+      } else s += `<line x1="${x}" y1="${ZC}" x2="${x}" y2="170"/>`;
+    }
+    el['z-st'].innerHTML = s;
+
+    // lupa: tambor
+    s = '';
+    for (let n = 0; n < 50; n++) {
+      const a = wrap(n - t) * TAU / 50, c = Math.cos(a);
+      if (c < .1) continue;
+      const sn = Math.sin(a), five = n % 5 === 0, L = five ? 36 : 24, r2 = 86 + 40 * (L / 60), op = Math.min(1, c * 2.2).toFixed(2);
+      s += `<line x1="${E + 1.5}" y1="${(ZC - 86 * sn).toFixed(2)}" x2="${E + 1.5 + L}" y2="${(ZC - r2 * sn).toFixed(2)}" opacity="${op}"/>`;
+      if (five) s += `<text class="eng" font-size="23" dy=".35em" transform="translate(${E + 55},${(ZC - 121 * sn).toFixed(2)}) scale(1,${c.toFixed(3)})" opacity="${op}">${n}</text>`;
+    }
+    el['z-tt'].innerHTML = s;
+    el['z-kn'].innerHTML = knurl(E + 214, 650, ZC, 126, 44, phi);
+
+    // lupa: llamadas de lectura
+    s = '';
+    if (!state.hideSum) {
+      const d = f => state.focus && state.focus !== f ? ' dim' : '';
+      const xm = (E - (m - whole) * Z), five = whole % 5 === 0;
+      s += `<g class="co mm${d(1)}"><line x1="${xm.toFixed(2)}" y1="${ZC}" x2="${xm.toFixed(2)}" y2="${five ? 116 : 126}" stroke-width="4.5"/>`
+        + `<line x1="${xm.toFixed(2)}" y1="${five ? 84 : 120}" x2="${xm.toFixed(2)}" y2="73" stroke-width="1.5"/>`
+        + `<text x="${(xm + 6).toFixed(2)}" y="58" text-anchor="end">${whole} mm</text></g>`;
+      if (half) {
+        const xh = (E - (m - whole - .5) * Z);
+        s += `<g class="co half${d(2)}"><line x1="${xh.toFixed(2)}" y1="${ZC}" x2="${xh.toFixed(2)}" y2="170" stroke-width="4.5"/>`
+          + `<line x1="${xh.toFixed(2)}" y1="176" x2="${xh.toFixed(2)}" y2="227" stroke-width="1.5"/>`
+          + `<text x="${(xh + 6).toFixed(2)}" y="258" text-anchor="end">+ 0.50 mm</text></g>`;
+      }
+      const a = wrap(th - t) * TAU / 50, sn = Math.sin(a), L = th % 5 === 0 ? 36 : 24, r2 = 86 + 40 * (L / 60), py = ZC - 121 * sn;
+      s += `<g class="co th${d(3)}"><line x1="${E + 1.5}" y1="${(ZC - 86 * sn).toFixed(2)}" x2="${E + 1.5 + L}" y2="${(ZC - r2 * sn).toFixed(2)}" stroke-width="4.5"/>`
+        + `<rect x="${E + 88}" y="${(py - 19).toFixed(2)}" width="120" height="38" rx="4"/>`
+        + `<text x="${E + 148}" y="${(py + 8.5).toFixed(2)}" text-anchor="middle">${th} × 0.01</text></g>`;
+    }
+    el['z-call'].innerHTML = s;
+
+    // suma
+    const q = state.hideSum;
+    el['v-mm'].textContent = q ? '?' : f2(whole);
+    el['v-half'].textContent = q ? '?' : (half ? '0.50' : '0.00');
+    el['v-th'].textContent = q ? '?' : f2(th / 100);
+    el['k-th'].textContent = q ? 'divisiones × 0.01' : `${th} ${th === 1 ? 'división' : 'divisiones'} × 0.01`;
+    el['v-tot'].textContent = q ? '?' : f2(h / 100);
+    document.querySelectorAll('#sum button').forEach(bt => bt.classList.toggle('dim', !q && state.focus > 0 && +bt.dataset.f !== state.focus));
+
+    if (document.activeElement !== el.sl) el.sl.value = f2(h / 100);
+    el['sl-out'].textContent = f2(h / 100) + ' mm';
+  }
+
+  /* ---------- partes ---------- */
+  $('part-chips').innerHTML = PARTS.map(p => `<button class="btn" type="button" data-part="${p[0]}" aria-pressed="false">${p[1]}</button>`).join('');
+  function selectPart(id) {
+    state.part = state.part === id ? null : id;
+    const p = PARTS.find(x => x[0] === state.part);
+    $('part-t').textContent = p ? p[1] : 'Un instrumento para centésimas';
+    $('part-d').textContent = p ? p[2] : 'Mide espesores y diámetros exteriores con una resolución de 0.01 mm. Este modelo cubre de 0 a 25 mm. Elige una parte para ubicarla en el dibujo.';
+    document.querySelectorAll('#part-chips button').forEach(bt => bt.setAttribute('aria-pressed', bt.dataset.part === state.part));
+    render();
+  }
+  $('part-chips').addEventListener('click', e => { const bt = e.target.closest('button'); if (bt) selectPart(bt.dataset.part); });
+  $('labels').addEventListener('click', e => { const tx = e.target.closest('text'); if (tx) selectPart(tx.dataset.part); });
+
+  /* ---------- cómo se usa ---------- */
+  $('piece-chips').innerHTML = PIECES.map(p => `<button class="btn" type="button" data-piece="${p.id}" aria-pressed="${p.id === state.pieceId}">${p.name}</button>`).join('');
+  function stepUI() {
+    $('step-n').textContent = `Paso ${state.step + 1} de ${STEPS.length}`;
+    $('step-t').textContent = STEPS[state.step][0];
+    $('step-d').textContent = STEPS[state.step][1];
+    $('b-prev').disabled = state.step === 0;
+    $('b-next').disabled = state.step === STEPS.length - 1;
+  }
+  async function clicks(my) {
+    for (let i = 1; i <= 3; i++) {
+      if (!await tween('ratchet', state.ratchet + .9, 260) || my !== seq) return false;
+      state.clics = i; render();
+      await wait(330); if (my !== seq) return false;
+    }
+    return true;
+  }
+  async function playStep(i, keepAuto) {
+    const wasAuto = keepAuto && auto;
+    stopAll(); auto = wasAuto;
+    const my = seq, v = PIECES.find(x => x.id === state.pieceId).v, open = Math.min(25, v + 3);
+    state.step = i; state.clics = 0; state.focus = 0; stepUI();
+    const set = (m, piece, lock) => { if (m !== null) state.m = m; state.pieceA = piece; state.lockA = lock ? 40 : -40; render(); };
+    let ok = true;
+    if (i === 0) { set(null, 0, false); ok = await tween('m', 0, Math.min(2600, 500 + state.m * 130)) && my === seq && await clicks(my); }
+    else if (i === 1) { set(0, 0, false); ok = await tween('m', open, 1900); }
+    else if (i === 2) { set(open, 0, false); ok = await tween('pieceA', 1, 700); }
+    else if (i === 3) { set(open, 1, false); ok = await tween('m', v + .3, 2300); }
+    else if (i === 4) { set(v + .3, 1, false); ok = await tween('m', v, 2000) && my === seq && await clicks(my); }
+    else if (i === 5) { set(v, 1, false); ok = await tween('lockA', 40, 500); }
+    else {
+      set(v, 1, true);
+      for (const f of [1, 2, 3, 0]) { if (my !== seq) return; state.focus = f; render(); if (f) await wait(1700); }
+    }
+    if (!ok || my !== seq) return;
+    if (auto && i < STEPS.length - 1) { await wait(1100); if (my === seq) playStep(i + 1, true); }
+    else auto = false;
+  }
+  function resetSteps() { stopAll(); state.step = 0; state.clics = 0; state.focus = 0; state.pieceA = 0; state.lockA = -40; buildPiece(); stepUI(); render(); }
+  $('b-play').addEventListener('click', () => playStep(state.step));
+  $('b-next').addEventListener('click', () => playStep(Math.min(STEPS.length - 1, state.step + 1)));
+  $('b-prev').addEventListener('click', () => playStep(Math.max(0, state.step - 1)));
+  $('b-all').addEventListener('click', () => { auto = true; playStep(0, true); });
+  $('piece-chips').addEventListener('click', e => {
+    const bt = e.target.closest('button'); if (!bt) return;
+    state.pieceId = bt.dataset.piece;
+    document.querySelectorAll('#piece-chips button').forEach(x => x.setAttribute('aria-pressed', x === bt));
+    resetSteps();
+  });
+
+  /* ---------- lectura ---------- */
+  el.sl.addEventListener('input', () => { stopAll(); state.m = +el.sl.value; render(); });
+  $('p-lectura').addEventListener('click', e => {
+    const bt = e.target.closest('button[data-d]'); if (!bt) return;
+    stopAll();
+    const target = Math.max(0, Math.min(25, Math.round((state.m + +bt.dataset.d) * 100) / 100));
+    tween('m', target, Math.abs(+bt.dataset.d) > .1 ? 700 : 160);
+  });
+  $('sum').addEventListener('click', e => {
+    const bt = e.target.closest('button'); if (!bt || state.hideSum) return;
+    state.focus = state.focus === +bt.dataset.f ? 0 : +bt.dataset.f; render();
+  });
+
+  /* ---------- práctica ---------- */
+  function newQuiz() {
+    stopAll();
+    quizH = 50 + Math.floor(Math.random() * 2400); answered = false;
+    state.hideSum = true; state.focus = 0; state.pieceA = 0; state.lockA = -40;
+    $('ans').value = ''; $('fb').textContent = ''; $('fb').className = '';
+    tween('m', quizH / 100, 900);
+  }
+  function score() { $('score').textContent = `Aciertos: ${hits} de ${tries}`; }
+  $('quiz').addEventListener('submit', e => {
+    e.preventDefault();
+    const val = parseFloat($('ans').value.replace(',', '.')), fb = $('fb');
+    if (isNaN(val)) { fb.className = 'bad'; fb.textContent = 'Escribe un número, por ejemplo 7.28.'; return; }
+    const got = Math.round(val * 100);
+    if (!answered) { tries++; if (got === quizH) hits++; answered = true; score(); }
+    if (got === quizH) { fb.className = 'ok'; fb.textContent = `Correcto: ${f2(quizH / 100)} mm.`; state.hideSum = false; render(); }
+    else if (Math.abs(got - quizH) === 50) { fb.className = 'bad'; fb.textContent = 'Casi. Revisa la raya de medio milímetro, debajo de la línea de referencia.'; }
+    else if (Math.floor(got / 50) === Math.floor(quizH / 50)) { fb.className = 'bad'; fb.textContent = 'El cilindro está bien leído. Revisa qué división del tambor coincide con la línea.'; }
+    else { fb.className = 'bad'; fb.textContent = 'Todavía no. Empieza por los milímetros enteros del cilindro.'; }
+  });
+  $('b-show').addEventListener('click', () => {
+    if (!answered) { tries++; answered = true; score(); }
+    state.hideSum = false; $('fb').className = ''; $('fb').textContent = `La medida es ${f2(quizH / 100)} mm.`; render();
+  });
+  $('b-new').addEventListener('click', newQuiz);
+
+  /* ---------- pestañas ---------- */
+  function setTab(tab) {
+    stopAll();
+    state.tab = tab; state.hideSum = false; state.focus = 0; state.clics = 0;
+    document.querySelectorAll('.tabs button').forEach(bt => bt.setAttribute('aria-selected', bt.dataset.tab === tab));
+    ['partes', 'pasos', 'lectura', 'practica'].forEach(t => $('p-' + t).hidden = t !== tab);
+    if (tab === 'pasos') return resetSteps();
+    state.pieceA = 0; state.lockA = -40;
+    if (tab === 'practica') return newQuiz();
+    render();
+    if (tab === 'partes' && (state.m < 6 || state.m > 18)) tween('m', 7.28, 900);
+  }
+  document.querySelector('.tabs').addEventListener('click', e => { const bt = e.target.closest('button'); if (bt) setTab(bt.dataset.tab); });
+
+  /* ---------- pantalla completa ---------- */
+  const full = $('b-full');
+  if (document.fullscreenEnabled) {
+    full.hidden = false;
+    full.addEventListener('click', () => {
+      const p = document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+      if (p && p.catch) p.catch(() => {});
+    });
+    document.addEventListener('fullscreenchange', () => { full.textContent = document.fullscreenElement ? 'Salir de pantalla completa' : 'Pantalla completa'; });
+  }
+
+  buildPiece(); stepUI(); render();
+})();
+</script>
+
+</body></html>
